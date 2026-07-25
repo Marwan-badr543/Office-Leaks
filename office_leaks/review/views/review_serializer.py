@@ -52,8 +52,8 @@ class ReviewReadSerializer(serializers.ModelSerializer):
 
 class GetReviewsByCompanySerializer(serializers.Serializer):
     company_id = serializers.IntegerField()
-    page_size = serializers.IntegerField()
-    page = serializers.IntegerField()
+    page_size = serializers.IntegerField(min_value=1, max_value=100)
+    page = serializers.IntegerField(min_value=1)
 
 
 class DeleteReviewSerializer(serializers.Serializer):

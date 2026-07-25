@@ -149,8 +149,8 @@ class PostReadSerializer(serializers.ModelSerializer):
 
 
 class GetPostsSerializer(serializers.Serializer):
-    page_size = serializers.IntegerField()
-    page = serializers.IntegerField()
+    page_size = serializers.IntegerField(min_value=1, max_value=100)
+    page = serializers.IntegerField(min_value=1)
     ordering = serializers.ChoiceField(choices=['recent', 'popular'], default='recent', required=False)
     category = serializers.ChoiceField(choices=PostCategory.choices, required=False)
 

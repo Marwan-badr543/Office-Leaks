@@ -45,8 +45,8 @@ class PostCommentReadSerializer(serializers.ModelSerializer):
 
 class GetPostCommentsSerializer(serializers.Serializer):
     post_id = serializers.IntegerField()
-    page_size = serializers.IntegerField()
-    page = serializers.IntegerField()
+    page_size = serializers.IntegerField(min_value=1, max_value=100)
+    page = serializers.IntegerField(min_value=1)
 
 
 class DeletePostCommentSerializer(serializers.Serializer):
