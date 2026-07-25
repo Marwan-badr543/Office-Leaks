@@ -11,6 +11,7 @@ from ..services.company_rate import CompanyRateServices
 def create_company_rate(request):
     serializer = CompanyRateSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
+        serializer.validated_data['user_id'] = request.user.id
         current_rate, created = CompanyRateServices.update_or_create_company_rate(serializer.validated_data)
         if created:
             return Response({"message": "Rate value created successfully",
