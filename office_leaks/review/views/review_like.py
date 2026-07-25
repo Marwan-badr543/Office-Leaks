@@ -12,6 +12,7 @@ from ..services.review_like import ReviewLikeServices
 def create_like(request):
     serializer = ReviewLikeCreateSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
+        serializer.validated_data['user_id'] = request.user.id
         res = ReviewLikeServices.create_like(serializer.validated_data)
         return Response(res, status=status.HTTP_201_CREATED)
 
@@ -23,7 +24,7 @@ def delete_like(request, review_id):
     serializer = DeleteReviewLikeSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    user_id = serializer.validated_data['user_id']
+    user_id = request.user.id
 
     res = ReviewLikeServices.delete_like(user_id=user_id, review_id=review_id)
     return Response(res, status=status.HTTP_200_OK)

@@ -16,6 +16,7 @@ from ..services.post import PostServices
 def create_post(request):
     serializer = PostCreateSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
+        serializer.validated_data['user_id'] = request.user.id
         post = PostServices.create_post(serializer.validated_data)
         return Response(PostReadSerializer(post).data, status=status.HTTP_201_CREATED)
 
@@ -26,7 +27,7 @@ def create_post(request):
 def update_post(request, post_id):
     serializer = PostUpdateSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
-        user_id = request.data.get('user_id')
+        user_id = request.user.id
         user = request.user if request.user and request.user.is_authenticated else None
         post = PostServices.update_post(post_id, user_id, serializer.validated_data, user=user)
         return Response(PostReadSerializer(post).data, status=status.HTTP_200_OK)
@@ -105,7 +106,7 @@ def get_trending_topics(request):
 def delete_post(request, post_id):
     serializer = DeletePostSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user_id = serializer.validated_data['user_id']
+    user_id = request.user.id
 
     post = PostServices.delete_post(post_id, user_id)
     return Response(
