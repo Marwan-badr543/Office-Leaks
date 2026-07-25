@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="maleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#0EA5E9" />
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="url(#maleGrad)" />
+  <path d="M35,35 Q50,22 65,35 Q68,45 65,52 Q50,45 35,52 Q32,45 35,35 Z" fill="#1E293B" />
+  <path d="M40,55 Q50,72 60,55 Z" fill="#FDBA74" />
+  <circle cx="50" cy="45" r="16" fill="#FDBA74" />
+  <circle cx="33" cy="45" r="3.5" fill="#FDBA74" />
+  <circle cx="67" cy="45" r="3.5" fill="#FDBA74" />
+  <circle cx="45" cy="43" r="1.5" fill="#1E293B" />
+  <circle cx="55" cy="43" r="1.5" fill="#1E293B" />
+  <path d="M41,39 Q45,38 48,40" stroke="#1E293B" stroke-width="1.5" fill="none" stroke-linecap="round" />
+  <path d="M59,39 Q55,38 52,40" stroke="#1E293B" stroke-width="1.5" fill="none" stroke-linecap="round" />
+  <path d="M47,50 Q50,53 53,50" stroke="#1E293B" stroke-width="1.5" fill="none" stroke-linecap="round" />
+  <path d="M36,37 Q42,28 50,30 Q60,25 64,36 Q55,32 45,35 Z" fill="#1E293B" />
+  <path d="M36,47 Q37,59 50,61 Q63,59 64,47 Q64,54 50,56 Q36,54 36,47 Z" fill="#334155" opacity="0.3" />
+  <path d="M35,75 L65,75 L60,65 L50,69 L40,65 Z" fill="#FFFFFF" />
+  <path d="M48,68 L52,68 L54,82 L50,86 L46,82 Z" fill="#0EA5E9" />
+  <path d="M25,82 Q35,66 42,68 L50,78 L58,68 Q65,66 75,82 L70,98 L30,98 Z" fill="#1E293B" />
+  <path d="M42,68 L48,78 L35,80 Z" fill="#0F172A" />
+  <path d="M58,68 L52,78 L65,80 Z" fill="#0F172A" />
+</svg>

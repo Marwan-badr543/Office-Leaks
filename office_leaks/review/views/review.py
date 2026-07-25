@@ -1,4 +1,5 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from .review_serializer import (
@@ -33,15 +34,19 @@ def update_review(request, review_id):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_reviews_by_company(request):
     serializer = GetReviewsByCompanySerializer(data=request.query_params)
     serializer.is_valid(raise_exception=True)
     data = serializer.validated_data
 
+    user = request.user if request.user and request.user.is_authenticated else None
+
     result = ReviewServices.get_reviews_by_company(
         company_id=data["company_id"],
         page=data["page"],
         page_size=data["page_size"],
+        user=user,
     )
 
     result["reviews"] = ReviewReadSerializer(
@@ -50,6 +55,14 @@ def get_reviews_by_company(request):
     ).data
 
     return Response(result)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_review_by_id(request, review_id):
+    user = request.user if request.user and request.user.is_authenticated else None
+    review = ReviewServices.get_review_by_id(review_id, user)
+    return Response(ReviewReadSerializer(review).data, status=status.HTTP_200_OK)
 
 
 @api_view(['DELETE'])

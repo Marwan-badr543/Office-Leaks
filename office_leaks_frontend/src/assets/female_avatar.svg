@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="femaleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#0EA5E9" />
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="url(#femaleGrad)" />
+  <path d="M30,40 C25,60 28,80 34,92 C35,92 65,92 66,92 C72,80 75,60 70,40 Z" fill="#475569" />
+  <path d="M42,55 Q50,72 58,55 Z" fill="#FED7AA" />
+  <circle cx="50" cy="45" r="15" fill="#FED7AA" />
+  <circle cx="34.5" cy="46" r="3" fill="#FED7AA" />
+  <circle cx="65.5" cy="46" r="3" fill="#FED7AA" />
+  <circle cx="34.5" cy="48" r="1" fill="#FBBF24" />
+  <circle cx="65.5" cy="48" r="1" fill="#FBBF24" />
+  <circle cx="44.5" cy="43.5" r="1.5" fill="#1E293B" />
+  <circle cx="55.5" cy="43.5" r="1.5" fill="#1E293B" />
+  <path d="M40.5,40 C42,39 46,39.5 47.5,41.5" stroke="#1E293B" stroke-width="1.2" fill="none" stroke-linecap="round" />
+  <path d="M59.5,40 C58,39 54,39.5 52.5,41.5" stroke="#1E293B" stroke-width="1.2" fill="none" stroke-linecap="round" />
+  <path d="M46.5,50 Q50,54 53.5,50" stroke="#1E293B" stroke-width="1.5" fill="none" stroke-linecap="round" />
+  <path d="M33,40 C34,25 66,25 67,40 C68,52 64,65 63,75 C60,55 40,55 37,75 C36,65 32,52 33,40 Z" fill="#475569" />
+  <path d="M38,70 L62,70 L58,64 L50,67 L42,64 Z" fill="#FFFFFF" />
+  <path d="M43,65 C45,69 55,69 57,65 Z" fill="#FED7AA" />
+  <path d="M49,69 C50,71 50,71 51,69 Z" fill="#FBBF24" />
+  <path d="M28,82 Q38,68 44,70 L50,77 L56,70 Q62,68 72,82 L68,98 L32,98 Z" fill="#334155" />
+  <path d="M44,70 L48,77 L36,79 Z" fill="#1E293B" />
+  <path d="M56,70 L52,77 L64,79 Z" fill="#1E293B" />
+</svg>

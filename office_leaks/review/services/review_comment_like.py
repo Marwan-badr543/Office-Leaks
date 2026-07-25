@@ -1,48 +1,143 @@
+import logging
+from collections import Counter
 from django.db import transaction
-from django.contrib.auth import get_user_model
+from core.redis_client import get_redis_client
+from review.db.models import ReviewCommentLike
 from review.db.repositories.review_comment_like_repo import ReviewCommentLikeRepo
 from review.db.repositories.review_comment_repo import ReviewCommentRepo
-from core.exceptions import NotFoundError, DuplicateResourceError, ValidationError
+from core.exceptions import DuplicateResourceError
 
-User = get_user_model()
+logger = logging.getLogger(__name__)
+
+REDIS_REVIEW_COMMENT_LIKES_KEY = "global_review_comment_likes_buffer"
+BUFFER_MAX_SIZE = 100
+
+ADD_LIKE_SCRIPT = """
+local added = redis.call('SADD', KEYS[1], ARGV[1])
+local total_count = redis.call('SCARD', KEYS[1])
+return {added, total_count}
+"""
+
+REMOVE_LIKE_SCRIPT = """
+local removed = redis.call('SREM', KEYS[1], ARGV[1])
+local total_count = redis.call('SCARD', KEYS[1])
+
+if total_count == 0 then
+    redis.call('DEL', KEYS[1])
+end
+
+return {removed, total_count}
+"""
+
+FLUSH_LIKE_SCRIPT = """
+local elements = redis.call('SMEMBERS', KEYS[1])
+redis.call('DEL', KEYS[1])
+return elements
+"""
 
 
-class ReviewCommentLikeServices():
+class ReviewCommentLikeServices:
 
     @staticmethod
     def create_like(validated_data):
         user_id = validated_data.get('user_id')
         comment_id = validated_data.get('review_comment_id')
 
-        # Validate user exists
-        if not User.objects.filter(id=user_id).exists():
-            raise NotFoundError(f"User with id {user_id} not found.")
+        r = get_redis_client()
+        element = f"{user_id}:{comment_id}"
 
-        # Validate comment exists
-        if not ReviewCommentRepo.get_comment_by_id(comment_id):
-            raise NotFoundError(f"Comment with id {comment_id} not found.")
+        added, total_count = r.eval(
+            ADD_LIKE_SCRIPT, 1, REDIS_REVIEW_COMMENT_LIKES_KEY, element
+        )
 
-        # Validate duplicate like
-        if ReviewCommentLikeRepo.get_like_by_user_and_comment(user_id, comment_id):
-            raise DuplicateResourceError(f"User {user_id} already liked comment {comment_id}.")
+        if not added:
+            raise DuplicateResourceError("You have already liked this review comment.")
 
-        with transaction.atomic():
-            like = ReviewCommentLikeRepo.create_like(validated_data)
-            ReviewCommentRepo.increment_likes_count(comment_id)
-            return like
+        logger.info(
+            f"Atomic ADD '{element}' to global review comment likes Redis buffer. "
+            f"Total system likes count: {total_count}/{BUFFER_MAX_SIZE}"
+        )
+
+        task_enqueued = False
+        if total_count >= BUFFER_MAX_SIZE:
+            from review.tasks import flush_review_comment_likes_task
+            flush_review_comment_likes_task()
+            task_enqueued = True
+
+        return {
+            "status": "success",
+            "message": f"Like for review comment {comment_id} by user {user_id} saved to global Redis buffer.",
+            "user_id": user_id,
+            "review_comment_id": comment_id,
+            "added": bool(added),
+            "total_system_buffer_count": total_count,
+            "flush_task_enqueued": task_enqueued
+        }
 
     @staticmethod
-    def delete_like(like_id, user_id):
-        like = ReviewCommentLikeRepo.get_like_by_id(like_id)
-        if not like:
-            raise NotFoundError(f"Like with id {like_id} not found.")
+    def delete_like(user_id, comment_id):
+        r = get_redis_client()
+        element = f"{user_id}:{comment_id}"
 
-        if like.user_id != user_id:
-            raise ValidationError("You can only delete your own likes.")
+        removed, total_count = r.eval(
+            REMOVE_LIKE_SCRIPT, 1, REDIS_REVIEW_COMMENT_LIKES_KEY, element
+        )
 
-        comment_id = like.review_comment_id
+        logger.info(
+            f"Atomic SREM '{element}' from global review comment likes Redis buffer. "
+            f"Total system likes count: {total_count}/{BUFFER_MAX_SIZE}"
+        )
+
+        db_removed = False
+        if not removed:
+            like = ReviewCommentLikeRepo.get_like_by_user_and_comment(user_id, comment_id)
+            if like:
+                with transaction.atomic():
+                    ReviewCommentLikeRepo.delete_like(like)
+                    ReviewCommentRepo.decrement_likes_count(comment_id)
+                db_removed = True
+
+        return {
+            "status": "success",
+            "message": f"Like for review comment {comment_id} by user {user_id} removed.",
+            "user_id": user_id,
+            "review_comment_id": comment_id,
+            "removed": bool(removed) or db_removed,
+            "total_system_buffer_count": total_count
+        }
+
+    @staticmethod
+    def flush_likes_to_db():
+        r = get_redis_client()
+        elements = r.eval(FLUSH_LIKE_SCRIPT, 1, REDIS_REVIEW_COMMENT_LIKES_KEY)
+
+        if not elements:
+            return 0
+
+        likes_to_create = []
+        comment_like_counts = Counter()
+
+        for item in elements:
+            try:
+                user_id_str, comment_id_str = item.split(":")
+                user_id = int(user_id_str)
+                comment_id = int(comment_id_str)
+
+                likes_to_create.append(
+                    ReviewCommentLike(user_id=user_id, review_comment_id=comment_id)
+                )
+                comment_like_counts[comment_id] += 1
+            except (ValueError, AttributeError):
+                continue
+
+        if not likes_to_create:
+            return 0
 
         with transaction.atomic():
-            ReviewCommentLikeRepo.delete_like(like)
-            ReviewCommentRepo.decrement_likes_count(comment_id)
-            return like
+            ReviewCommentLikeRepo.bulk_create_likes(likes_to_create)
+
+            for comment_id, count in comment_like_counts.items():
+                ReviewCommentRepo.increment_likes_count(comment_id, count=count)
+
+        logger.info(f"Flushed {len(likes_to_create)} review comment likes from Redis buffer into DB.")
+        return len(likes_to_create)

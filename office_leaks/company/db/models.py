@@ -1,13 +1,19 @@
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from .model_choices import CompanyIndustry
+
 
 class Company(models.Model):
     creation = models.DateTimeField(default=timezone.now)
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=300)
-    industry = models.CharField(max_length=50)
-    logo = models.CharField(blank=True, null=True)
+    industry = models.CharField(
+        max_length=100,
+        choices=CompanyIndustry.choices,
+        default=CompanyIndustry.OTHER,
+    )
+    logo = models.CharField(max_length=255, blank=True, null=True)
     founded_at = models.DateField(blank=True, null=True)
     website = models.CharField(max_length=100, blank=True, null=True)
     linkedin = models.CharField(max_length=100, blank=True, null=True)
@@ -24,6 +30,12 @@ class Company(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['name', 'industry'], name='unique_company_name_industry')
+        ]
+        indexes = [
+            models.Index(fields=['industry'], name='company_industry_idx'),
+            models.Index(fields=['-current_rate'], name='company_rate_idx'),
+            # For Postgres: replace with GinIndex(fields=['name'], name='company_name_idx', opclasses=['gin_trgm_ops'])
+            models.Index(fields=['name'], name='company_name_idx'),
         ]
 
     def __str__(self):

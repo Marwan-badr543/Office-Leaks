@@ -1,4 +1,5 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from .post_comment_serializer import (
@@ -26,22 +27,27 @@ def update_comment(request, comment_id):
     serializer = PostCommentUpdateSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
         user_id = request.data.get('user_id')
-        comment = PostCommentServices.update_comment(comment_id, user_id, serializer.validated_data)
+        user = request.user if request.user and request.user.is_authenticated else None
+        comment = PostCommentServices.update_comment(comment_id, user_id, serializer.validated_data, user=user)
         return Response(PostCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_comments_by_post(request):
     serializer = GetPostCommentsSerializer(data=request.query_params)
     serializer.is_valid(raise_exception=True)
     data = serializer.validated_data
 
+    user = request.user if request.user and request.user.is_authenticated else None
+
     result = PostCommentServices.get_comments_by_post(
         post_id=data["post_id"],
         page=data["page"],
         page_size=data["page_size"],
+        user=user,
     )
 
     result["comments"] = PostCommentReadSerializer(

@@ -8,27 +8,26 @@ class PostCommentRepo():
     @staticmethod
     def create_comment(comment_data: dict):
         try:
-            return PostComment.objects.create(**comment_data)
+            comment = PostComment.objects.create(**comment_data)
+            return PostComment.objects.select_related('user').get(id=comment.id)
         except Exception as e:
             raise DatabaseError(f"DatabaseError in create_post_comment: {e}")
 
     @staticmethod
     def get_comment_by_id(comment_id):
         try:
-            return PostComment.objects.filter(id=comment_id).first()
+            return PostComment.objects.select_related('user').filter(id=comment_id).first()
         except Exception as e:
             raise DatabaseError(f"DatabaseError in get_post_comment_by_id: {e}")
 
     @staticmethod
     def get_comments_by_post(post_id, page=1, page_size=10):
         try:
-            queryset = PostComment.objects.filter(post_id=post_id).order_by('-creation')
-            total = queryset.count() if page == 1 else None
+            queryset = PostComment.objects.select_related('user').filter(post_id=post_id).order_by('-creation')
             start = (page - 1) * page_size
             end = start + page_size
 
             return {
-                "total": total or 0,
                 "comments": queryset[start:end],
             }
         except Exception as e:
@@ -49,16 +48,16 @@ class PostCommentRepo():
             raise DatabaseError(f"DatabaseError in delete_post_comment: {e}")
 
     @staticmethod
-    def increment_likes_count(comment_id):
+    def increment_likes_count(comment_id, count=1):
         try:
-            PostComment.objects.filter(id=comment_id).update(likes_number=F('likes_number') + 1)
+            PostComment.objects.filter(id=comment_id).update(likes_number=F('likes_number') + count)
         except Exception as e:
             raise DatabaseError(f"DatabaseError in increment_likes_count: {e}")
 
     @staticmethod
-    def decrement_likes_count(comment_id):
+    def decrement_likes_count(comment_id, count=1):
         try:
-            PostComment.objects.filter(id=comment_id).update(likes_number=F('likes_number') - 1)
+            PostComment.objects.filter(id=comment_id).update(likes_number=F('likes_number') - count)
         except Exception as e:
             raise DatabaseError(f"DatabaseError in decrement_likes_count: {e}")
 

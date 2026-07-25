@@ -32,10 +32,11 @@ class CompanyRateServices():
         if count == 0:
             avg_rating = 0.0
         else:
-            avg_rating = total / count
+            avg_rating = round(total / count, 2)
 
         # 3. Save the new rating to the Company model in the DB
         CompanyRepo.update_company_rating(company_id, avg_rating)
+        return avg_rating
 
 
     @staticmethod
@@ -53,13 +54,13 @@ class CompanyRateServices():
             if existing_rate:
                 # Update existing rate
                 rate = CompanyRateRepo.update_company_rate(existing_rate, rate_value)
-                CompanyRateServices.update_company_rating(company_id)
-                return rate, False  # False means updated
+                currnt_rate = CompanyRateServices.update_company_rating(company_id)
+                return currnt_rate, False  # False means updated
             else:
                 # Create new rate
                 rate = CompanyRateRepo.create_company_rate(validated_data)
-                CompanyRateServices.update_company_rating(company_id)
-                return rate, True   # True means created
+                currnt_rate = CompanyRateServices.update_company_rating(company_id)
+                return currnt_rate, True   # True means created
 
 
     @staticmethod

@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'user.apps.UserConfig',
     'company.apps.CompanyConfig',
     'review.apps.ReviewConfig',
+    'notification.apps.NotificationConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,7 +46,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    ]
+    'huey.contrib.djhuey',
+]
+
+
 
 # Custom User Model
 AUTH_USER_MODEL = 'user.User'
@@ -54,9 +58,11 @@ AUTH_USER_MODEL = 'user.User'
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=365),
+    'ROTATE_REFRESH_TOKENS': True,
 }
 
 MIDDLEWARE = [
+    'core.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -135,6 +141,12 @@ STATIC_URL = 'static/'
 
 REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "core.exception_handler.custom_exception_handler",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
 }
 
 LOGGING = {
@@ -160,4 +172,32 @@ LOGGING = {
         "handlers": ["file"],
         "level": "DEBUG",
     },
+}
+
+# Cloudflare R2 Object Storage
+R2_ACCESS_KEY_ID = os.environ.get('R2_ACCESS_KEY_ID')
+R2_SECRET_ACCESS_KEY = os.environ.get('R2_SECRET_ACCESS_KEY')
+R2_ENDPOINT = os.environ.get('R2_ENDPOINT')
+R2_BASE_URL = os.environ.get('R2_BASE_URL')
+R2_BUCKET_NAME = os.environ.get('R2_BUCKET_NAME')
+
+# Image upload limits
+MAX_IMAGE_UPLOAD_SIZE = 5 * 1024 * 1024  # 5 MB
+
+# Redis Connection Configuration
+REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
+REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
+REDIS_DB = os.environ.get('REDIS_DB', '0')
+REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', '')
+
+if REDIS_PASSWORD:
+    REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+else:
+    REDIS_URL = os.environ.get('REDIS_URL', f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}")
+
+# Huey Background Task Queue Settings
+HUEY = {
+    'name': 'office_leaks',
+    'url': REDIS_URL,
+    'immediate': False,
 }

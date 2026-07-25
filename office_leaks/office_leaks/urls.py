@@ -22,4 +22,5 @@ urlpatterns = [
     path('user/', include('user.urls')),
     path('company/', include('company.urls')),
     path('review/', include('review.urls')),
+    path('notification/', include('notification.urls')),
 ]
