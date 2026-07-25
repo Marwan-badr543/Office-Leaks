@@ -12,7 +12,6 @@ class CompanyRateSerializer(serializers.ModelSerializer):
 
 
 class GetCompanyRateSerializer(serializers.Serializer):
-    user_id = serializers.IntegerField()
     company_id = serializers.IntegerField()
 
 
