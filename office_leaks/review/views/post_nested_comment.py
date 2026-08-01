@@ -16,6 +16,7 @@ from ..services.post_nested_comment import PostNestedCommentServices
 def create_comment(request):
     serializer = PostNestedCommentCreateSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
+        serializer.validated_data['user_id'] = request.user.id
         comment = PostNestedCommentServices.create_comment(serializer.validated_data)
         return Response(PostNestedCommentReadSerializer(comment).data, status=status.HTTP_201_CREATED)
 
@@ -26,7 +27,7 @@ def create_comment(request):
 def update_comment(request, comment_id):
     serializer = PostNestedCommentUpdateSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
-        user_id = request.data.get('user_id')
+        user_id = request.user.id
         user = request.user if request.user and request.user.is_authenticated else None
         comment = PostNestedCommentServices.update_comment(comment_id, user_id, serializer.validated_data, user=user)
         return Response(PostNestedCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
@@ -62,7 +63,7 @@ def get_comments_by_parent(request):
 def delete_comment(request, comment_id):
     serializer = DeletePostNestedCommentSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user_id = serializer.validated_data['user_id']
+    user_id = request.user.id
 
     comment = PostNestedCommentServices.delete_comment(comment_id, user_id)
     return Response(

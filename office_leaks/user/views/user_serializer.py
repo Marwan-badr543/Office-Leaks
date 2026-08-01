@@ -67,6 +67,6 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 
 class GetUsersSerializer(serializers.Serializer):
-    page = serializers.IntegerField(required=True)
-    page_size = serializers.IntegerField(required=True)
+    page = serializers.IntegerField(required=True, min_value=1)
+    page_size = serializers.IntegerField(required=True, min_value=1, max_value=100)
     full_name = serializers.CharField(required=False, max_length=300)

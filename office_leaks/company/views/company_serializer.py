@@ -44,8 +44,8 @@ class CompanyUpdateSerializer(serializers.Serializer):
 
 
 class GetCompaniesSerializer(serializers.Serializer):
-    page_size = serializers.IntegerField()
-    page = serializers.IntegerField()
+    page_size = serializers.IntegerField(min_value=1, max_value=100)
+    page = serializers.IntegerField(min_value=1)
     name_search = serializers.CharField(required=False, max_length=100)
     industry = serializers.CharField(required=False, max_length=50)
     min_rate = serializers.FloatField(required=False, min_value=0, max_value=4)

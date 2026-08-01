@@ -60,8 +60,8 @@ class ReviewNestedCommentReadSerializer(serializers.ModelSerializer):
 
 class GetReviewNestedCommentsSerializer(serializers.Serializer):
     parent_comment_id = serializers.IntegerField()
-    page_size = serializers.IntegerField()
-    page = serializers.IntegerField()
+    page_size = serializers.IntegerField(min_value=1, max_value=100)
+    page = serializers.IntegerField(min_value=1)
 
 
 class DeleteReviewNestedCommentSerializer(serializers.Serializer):

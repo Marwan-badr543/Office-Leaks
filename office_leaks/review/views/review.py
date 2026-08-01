@@ -16,6 +16,7 @@ from ..services.review import ReviewServices
 def create_review(request):
     serializer = ReviewCreateSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
+        serializer.validated_data['user_id'] = request.user.id
         review = ReviewServices.create_review(serializer.validated_data)
         return Response(ReviewReadSerializer(review).data, status=status.HTTP_201_CREATED)
 
@@ -26,7 +27,7 @@ def create_review(request):
 def update_review(request, review_id):
     serializer = ReviewUpdateSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
-        user_id = request.data.get('user_id')
+        user_id = request.user.id
         review = ReviewServices.update_review(review_id, user_id, serializer.validated_data)
         return Response(ReviewReadSerializer(review).data, status=status.HTTP_200_OK)
 
@@ -69,7 +70,7 @@ def get_review_by_id(request, review_id):
 def delete_review(request, review_id):
     serializer = DeleteReviewSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user_id = serializer.validated_data['user_id']
+    user_id = request.user.id
 
     review = ReviewServices.delete_review(review_id, user_id)
     return Response(

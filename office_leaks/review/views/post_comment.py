@@ -16,6 +16,7 @@ from ..services.post_comment import PostCommentServices
 def create_comment(request):
     serializer = PostCommentCreateSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
+        serializer.validated_data['user_id'] = request.user.id
         comment = PostCommentServices.create_comment(serializer.validated_data)
         return Response(PostCommentReadSerializer(comment).data, status=status.HTTP_201_CREATED)
 
@@ -26,7 +27,7 @@ def create_comment(request):
 def update_comment(request, comment_id):
     serializer = PostCommentUpdateSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
-        user_id = request.data.get('user_id')
+        user_id = request.user.id
         user = request.user if request.user and request.user.is_authenticated else None
         comment = PostCommentServices.update_comment(comment_id, user_id, serializer.validated_data, user=user)
         return Response(PostCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
@@ -62,7 +63,7 @@ def get_comments_by_post(request):
 def delete_comment(request, comment_id):
     serializer = DeletePostCommentSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user_id = serializer.validated_data['user_id']
+    user_id = request.user.id
 
     comment = PostCommentServices.delete_comment(comment_id, user_id)
     return Response(
